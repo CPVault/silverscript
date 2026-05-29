@@ -840,6 +840,25 @@ Compute the SHA-256 hash:
 byte[32] hash = sha256(data);
 ```
 
+**`blake3(byte[] data): byte[32]`**
+
+Compute the unkeyed BLAKE3 hash:
+
+```javascript
+byte[32] hash = blake3(data);
+```
+
+**`blake3WithKey(byte[] data, byte[32] key): byte[32]`**
+
+Compute the keyed BLAKE3 hash (BLAKE3 keyed mode). `key` must be exactly 32
+bytes. This mirrors Kaspa's domain-separated sequencing-commitment hashers, where
+the key is a domain tag padded to 32 bytes — e.g. to reproduce a consensus
+`MergesetContextHash`:
+
+```javascript
+byte[32] h = blake3WithKey(le_u64_ts + le_u64_daa + le_u64_blue, key);
+```
+
 **`checkSig(sig signature, pubkey publicKey): bool`**
 
 Verify a signature against a public key:

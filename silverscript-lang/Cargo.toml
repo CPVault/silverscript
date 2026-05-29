@@ -31,3 +31,6 @@ semver = "1.0"
 
 [dev-dependencies]
 kaspa-addresses.workspace = true
+kaspa-hashes.workspace = true
+kaspa-smt.workspace = true
+blake3 = "1.8"

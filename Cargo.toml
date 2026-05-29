@@ -21,6 +21,7 @@ kaspa-addresses = { git = "https://github.com/kaspanet/rusty-kaspa", branch = "t
 kaspa-hashes = { git = "https://github.com/kaspanet/rusty-kaspa", branch = "tn12" }
 kaspa-txscript = { git = "https://github.com/kaspanet/rusty-kaspa", branch = "tn12" }
 kaspa-txscript-errors = { git = "https://github.com/kaspanet/rusty-kaspa", branch = "tn12" }
+kaspa-smt = { git = "https://github.com/kaspanet/rusty-kaspa", branch = "tn12", features = ["test-utils"] }
 blake2b_simd = "1.0.2"
 indexmap = "2.7.0"
 rand = "0.8.5"

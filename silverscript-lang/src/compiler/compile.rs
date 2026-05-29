@@ -446,6 +446,8 @@ fn infer_expr_type_ref_for_comparison<'i>(
                 | "datasig"
                 | "bytes"
                 | "blake2b"
+                | "blake3"
+                | "blake3WithKey"
                 | "sha256"
                 | "OpSha256"
                 | "OpTxSubnetId"
@@ -3427,6 +3429,8 @@ fn expr_is_bytes_inner<'i>(expr: &Expr<'i>, types: &HashMap<String, String>, vis
                 name,
                 "bytes"
                     | "blake2b"
+                    | "blake3"
+                    | "blake3WithKey"
                     | "sha256"
                     | "OpSha256"
                     | "OpTxSubnetId"
@@ -3590,6 +3594,8 @@ fn compile_call_expr<'i>(
             compile_array_cast_call(&mut ctx, name, args)
         }
         "blake2b" => compile_blake2b_call(&mut ctx, args),
+        "blake3" => compile_blake3_call(&mut ctx, args),
+        "blake3WithKey" => compile_blake3_with_key_call(&mut ctx, args),
         "checkSig" => compile_checksig_call(&mut ctx, args),
         "checkDataSig" => compile_checkdatasig_call(&mut ctx, args),
         _ => compile_unknown_function_call(name),
@@ -3788,6 +3794,34 @@ fn compile_blake2b_call<'i>(ctx: &mut CompileCallContext<'_, 'i>, args: &[Expr<'
     }
     compile_call_arg_with_context(ctx, &args[0])?;
     ctx.builder.add_op(OpBlake2b)?;
+    Ok(())
+}
+
+/// `blake3(data)` -> unkeyed BLAKE3 of `data`, emitting `OpBlake3` (0xd9).
+/// Returns a 32-byte hash. Net stack effect 0 (pops 1, pushes 1).
+fn compile_blake3_call<'i>(ctx: &mut CompileCallContext<'_, 'i>, args: &[Expr<'i>]) -> Result<(), CompilerError> {
+    if args.len() != 1 {
+        return Err(CompilerError::Unsupported("blake3() expects a single argument".to_string()));
+    }
+    compile_call_arg_with_context(ctx, &args[0])?;
+    ctx.builder.add_op(OpBlake3)?;
+    Ok(())
+}
+
+/// `blake3WithKey(data, key)` -> keyed BLAKE3, emitting `OpBlake3WithKey` (0xda).
+/// `key` must be exactly 32 bytes (blake3 KEY_LEN) or the script fails at runtime.
+/// The engine pops `[data, key]` where `data` is the deeper stack item, so `data`
+/// is pushed first and `key` second — matching natural argument order. This mirrors
+/// Kaspa's domain-separated seq-commit hashers (blake3::new_keyed(pad32(domain))).
+/// Net stack effect -1 (pops 2, pushes 1).
+fn compile_blake3_with_key_call<'i>(ctx: &mut CompileCallContext<'_, 'i>, args: &[Expr<'i>]) -> Result<(), CompilerError> {
+    if args.len() != 2 {
+        return Err(CompilerError::Unsupported("blake3WithKey() expects 2 arguments (data, key)".to_string()));
+    }
+    compile_call_arg_with_context(ctx, &args[0])?;
+    compile_call_arg_with_context(ctx, &args[1])?;
+    ctx.builder.add_op(OpBlake3WithKey)?;
+    *ctx.stack_depth -= 1;
     Ok(())
 }
 
