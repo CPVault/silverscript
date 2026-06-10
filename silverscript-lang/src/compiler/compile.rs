@@ -460,6 +460,7 @@ fn infer_expr_type_ref_for_comparison<'i>(
                 | "OpNum2Bin"
                 | "OpBin2Num"
                 | "OpChainblockSeqCommit"
+                | "OpZkPrecompile"
                 | "LockingBytecodeNullData"
                 | "ScriptPubKeyP2PK"
                 | "ScriptPubKeyP2SH"
@@ -3586,6 +3587,10 @@ fn compile_call_expr<'i>(
         "OpNum2Bin" => compile_opcode_builtin_call(&mut ctx, name, args, 2, OpNum2Bin),
         "OpBin2Num" => compile_opcode_builtin_call(&mut ctx, name, args, 1, OpBin2Num),
         "OpChainblockSeqCommit" => compile_opcode_builtin_call(&mut ctx, name, args, 1, OpChainblockSeqCommit),
+        // ZK proof verification (Tier-2). 9 args pushed deepest->top:
+        // claim, control_index, control_digests, seal, journal, image_id, control_id, hashfn, tag.
+        // OpZkPrecompile pops tag (top) then the 8 fields; pushes true on success.
+        "OpZkPrecompile" => compile_opcode_builtin_call(&mut ctx, name, args, 9, OpZkPrecompile),
         "bytes" => compile_bytes_call(&mut ctx, args),
         "length" => compile_length_call(&mut ctx, args),
         "int" | "byte" | "bool" | "string" | "sig" | "pubkey" | "datasig" => compile_passthrough_cast_call(&mut ctx, name, args),
